@@ -4,3 +4,9 @@
 *.jar
 *.war
 *.ear
+
+# IntelliJ Idea #
+workspace.xml
+
+# Finder #
+.DS_Store 
