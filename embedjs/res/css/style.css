@@ -1,0 +1,91 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, button,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 12pt;
+  vertical-align: baseline;
+}
+
+.background_tile_jpg {
+  background-image: url("../img/background_tile.jpg");
+}
+
+a {
+  text-decoration: none;
+}
+
+.hidden {
+  display: none;
+}
+
+/* progress */
+
+.progress:before {
+  content: "\44";
+}
+
+.progress {
+	position: absolute;
+  z-index: 999;
+	top: 50%;
+	left: 50%;
+	margin: 1.5em 0 0 -0.5em;
+  font-size: 3em;
+  color: #f5deb3;
+  opacity: 0.5;
+  font-family: "red_apple";
+  -webkit-animation-name: spinnerRotate;
+  -webkit-animation-duration: 2s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+}
+
+
+@-webkit-keyframes spinnerRotate {
+	from {
+		-webkit-transform:rotate(0deg);
+	}
+	to {
+		-webkit-transform:rotate(360deg);
+	}
+}
+
+.center-logo {
+	position: absolute;
+  z-index: 10;
+	top: 50%;
+	left: 50%;
+  margin: -48px 0 0 -48px;
+	font-size: 96px;
+	color: red;
+}
+
+.margin-1em {
+  margin: 1em;
+}
+
+.text-align-center {
+  text-align: center;
+}
+
+.two-columns {
+  -moz-column-count: 2;
+  -moz-column-gap: 2em;
+  -webkit-column-count: 2;
+  -webkit-column-gap: 2em;
+  column-count: 2;
+  column-gap: 2em;
+}

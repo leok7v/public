@@ -1,0 +1,115 @@
+/*
+does not work on Android 2.0 and 2.1 (1.5, 1.6, 2.3 is fine)
+http://code.google.com/p/android/issues/detail?id=4448
+http://code.google.com/p/android/issues/detail?id=26347
+*/
+@font-face {
+	font-family: 'red_apple';
+	src: url('../font/ra.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+/* Use the following CSS code if you want to use data attributes for inserting your icons */
+[data-icon]:before {
+	font-family: 'red_apple';
+	content: attr(data-icon);
+	speak: none;
+}
+
+/* Use the following CSS code if you want to have a class per icon */
+[class^="icon-"]:before, [class*=" icon-"]:before {
+	font-family: 'red_apple';
+	font-style: normal;
+	speak: none;
+}
+.icon-apple:before {
+	content: "\47";
+}
+.icon-mail:before {
+	content: "\22";
+}
+.icon-location:before {
+	content: "\21";
+}
+.icon-cog:before {
+	content: "\50";
+}
+.icon-coffee:before {
+	content: "\23";
+}
+.icon-google-plus:before {
+	content: "\26";
+}
+.icon-facebook:before {
+	content: "\27";
+}
+.icon-twitter:before {
+	content: "\25";
+}
+.icon-loading:before {
+	content: "\44";
+}
+.icon-loading-2:before {
+	content: "\43";
+}
+.icon-star:before {
+	content: "\28";
+}
+.icon-contact:before {
+	content: "\29";
+}
+.icon-user:before {
+	content: "\2a";
+}
+.icon-users:before {
+	content: "\2b";
+}
+.icon-plus:before {
+	content: "\2c";
+}
+.icon-thumbs-up:before {
+	content: "\2d";
+}
+.icon-time:before {
+	content: "\2e";
+}
+.icon-history:before {
+	content: "\2f";
+}
+.icon-compass:before {
+	content: "\30";
+}
+.icon-search:before {
+	content: "\45";
+}
+.icon-search-2:before {
+	content: "\46";
+}
+.icon-zoom-in:before {
+	content: "\48";
+}
+.icon-target:before {
+	content: "\31";
+}
+.icon-arrow-left:before {
+	content: "\32";
+}
+.icon-arrow-right:before {
+	content: "\33";
+}
+.icon-gift:before {
+	content: "\24";
+}
+.icon-globe:before {
+	content: "\34";
+}
+.icon-key-stroke:before {
+	content: "\35";
+}
+.icon-link:before {
+	content: "\36";
+}
+.icon-spoon:before {
+	content: "\37";
+}

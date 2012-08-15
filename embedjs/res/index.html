@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Red Apple</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+      <link rel="stylesheet" href="css/style.css" />
+      <link rel="stylesheet" href="css/font.css" />
+      <link rel="stylesheet" href="css/buttons.css" />
+      <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+  </head>
+  <body class="background_tile_jpg">
+<!--
+    @mail=<span class="icon-mail"></span>
+-->
+    <span class="icon-apple center-logo"></span>
+    <div class="progress"></div>
+    <div class="two-columns text-align-center">
+        <div class="eval" data-code="('<span class=icon-apple></span>')"></div>
+        <div class="margin-1em text-center"><button class="clean-gray"><span class="icon-apple"></span>Clean Gray</button></div>
+        <div class="margin-1em text-center"><button class="minimal">@mail Minimal</button></div>
+        <div class="margin-1em text-center"><button class="cupid-green"><span class="icon-location"></span>Cupid Green</button></div>
+        <div class="margin-1em text-center"><button class="thoughtbot"><span class="icon-cog"></span>thoughtbot</button></div>
+        <div class="margin-1em text-center"><button class="shiny-blue"><span class="icon-coffe"></span>Shiny Blue</button></div>
+        <div class="margin-1em text-center"><button class="skip"><span class="icon-facebook"></span>Skip</button></div>
+        <div class="margin-1em text-center"><button class="minimal-indent"><span class="icon-google-plus"></span>Minimal Indent</button></div>
+        <div class="margin-1em text-center"><button class="webkit-seal"><span class="icon-twitter"></span>Approve!</button></div>
+        <div class="margin-1em text-center"><button class="webkit-badge"><span class="icon-contact"></span>Deal!</button></div>
+        <div class="margin-1em text-center"><button class="webkit-check"><span class="icon-apple"></span>Accept</button></div>
+    </div>
+    <script type="text/javascript">
+        $(function() {
+            var nodes = $("div.eval");
+            nodes.each(function(){
+                var code = $(this).data("code");
+                console.log("code=" + code);
+                if (code) {
+                    $(this).replaceWith(eval(code));
+                }
+            });
+        });
+    </script>
+  </body>
+</html>
