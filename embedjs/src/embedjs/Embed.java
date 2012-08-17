@@ -19,6 +19,7 @@ public class Embed {
     private final static int BUFFER_SIZE = 1024 * 1204;
 
     private static File src_dir;
+    private static File src_file;
 
     public static void main(String[] a) {
         if (a.length < 2) {
@@ -28,12 +29,12 @@ public class Embed {
                     "embedjs <scr> <dest>\n");
             System.exit(1);
         }
-        src_dir = new File(a[0]);
-        File dst_dir = new File(a[1]);
+        src_dir = io.getCanonicalFile(a[0]);
+        File dst_dir = io.getCanonicalFile(a[1]);
         if (!src_dir.isDirectory()) {
             error(src_dir + " does not exist or is not a directory");
         }
-        if (dst_dir.getAbsolutePath().equalsIgnoreCase(src_dir.getAbsolutePath())) {
+        if (io.getCanonicalPath(dst_dir).equalsIgnoreCase(io.getCanonicalPath(src_dir))) {
             error(dst_dir + " cannot be the same as " + src_dir);
         }
         if (!io.isDirectory(dst_dir) && !dst_dir.mkdirs()) {
@@ -49,7 +50,9 @@ public class Embed {
             String name = f.getName().toLowerCase();
             if (name.endsWith(".html") || name.endsWith(".jsp")) {
                 try {
-                    embed(new File(dst_dir, f.getName()), new String(io.readFully(f)));
+                    src_file = new File(dst_dir, f.getName());
+                    page.clear();
+                    embed(src_file, new String(io.readFully(f)));
                 } catch (IOException e) {
                     e.printStackTrace();
                     error(e.getMessage());
@@ -210,7 +213,8 @@ public class Embed {
     }
 
     private static File locateFile(String fn) {
-        return locateFile(null, fn);
+        File f = locateFile(null, fn);
+        return io.isFile(f) ? io.getCanonicalFile(f) : f;
     }
 
     private static String encodeDataUris(File css, String s) {
@@ -246,17 +250,27 @@ public class Embed {
     }
 
     private static HashMap<String, String> cache = new HashMap<String, String>(256);
+    private static HashMap<String, String> site  = new HashMap<String, String>(256);
+    private static HashSet<String> page  = new HashSet<String>(256);
 
     private static String base64EncodedFileForCss(String path) {
+        path = io.getCanonicalPath(path);
         String r = cache.get(path);
         if (r == null) {
-            File f = new File(path);
+            File f = io.getCanonicalFile(path);
             byte[] bytes = io.readFully(f);
             String mime = io.getMimeTypeFromFilename(f.getName());
             r = "data:" + mime + ";base64," + Base64.encode(bytes);
             cache.put(path, r);
+            page.add(path);
+            site.put(path, src_file.getAbsolutePath());
         } else {
-            System.err.println("WARNING: duplicate resource " + path);
+            if (page.contains(path)) {
+                System.err.println("WARNING: duplicate resource " + path + " in " + src_file);
+            } else {
+                System.err.println("WARNING: while processing " + src_file +
+                        " embedded " + path + " that has been already used in " + site.get(path));
+            }
         }
         return r;
     }

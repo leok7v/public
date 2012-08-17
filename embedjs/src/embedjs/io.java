@@ -128,4 +128,28 @@ public class io {
         }
     }
 
+    public static String getCanonicalPath(File f) {
+        try {
+            return f.getCanonicalPath();
+        } catch (IOException e) {
+            throw new Error(e);
+        }
+    }
+
+    public static File getCanonicalFile(File f) {
+        try {
+            return f.getCanonicalFile();
+        } catch (IOException e) {
+            throw new Error(e);
+        }
+    }
+
+    public static String getCanonicalPath(String s) {
+        return getCanonicalPath(new File(s));
+    }
+
+    public static File getCanonicalFile(String s) {
+        return getCanonicalFile(new File(s));
+    }
+
 }
