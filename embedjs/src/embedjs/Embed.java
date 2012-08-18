@@ -12,6 +12,15 @@ import java.util.regex.*;
  It may produce crippled results unless used with caution.
  However more complex solutions are short of writing
  complete javascript and css parser.
+
+ Optional
+    http://developer.yahoo.com/yui/compressor/
+    java -jar yuicompressor-x.y.z.jar myfile.js -o myfile-min.js --charset utf-8
+
+    https://github.com/douglascrockford/JSLint
+
+    http://code.google.com/p/jslint4java/
+
 */
 
 public class Embed {
@@ -151,6 +160,7 @@ public class Embed {
         int i = 0;
         while (m.find(i)) {
             String g = m.group(0);
+            // DO NOT embed rel="apple-touch..." links
             String href = g.toLowerCase().contains("stylesheet") && g.toLowerCase().contains("rel=") ?
                     valueOf("href", g) : null;
             File f = locateFile(href);
