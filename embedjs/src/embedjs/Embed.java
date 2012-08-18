@@ -111,7 +111,7 @@ public class Embed {
             File f = locateFile(src);
             if (io.isFile(f)) {
                 sb.append(s.substring(i, m.start()));
-                String c = stripComments(f, new String(io.readFully(f)));
+                String c = compress(f);
                 sb.append("\n<script type=\"text/javascript\" >\n").append(c).append("\n</script>\n");
             } else {
                 warnCannotEmbed(f);
@@ -120,6 +120,28 @@ public class Embed {
             i = m.end();
         }
         return i == 0 ? s : sb.append(s.substring(i, s.length())).toString();
+    }
+
+    private static String compress(File f) {
+        String n = f.getName().toLowerCase();
+        if (n.contains(".min.") || !(n.endsWith(".js") || n.endsWith(".css"))) {
+            return new String(io.readFully(f)); // do not cripple already minified javascript
+        }
+        String b = f.getName().substring(0, f.getName().lastIndexOf('.'));
+        String x = f.getName().substring(f.getName().lastIndexOf('.'));
+        File t = new File(f.getParentFile(), b + ".min" + x);
+        if (t.exists()) {
+            error("file " + t + " already exists");
+        }
+        System.err.println("compile: " + io.getCanonicalPath(f));
+        String[] args = new String[]{/*"-v", */"--charset", "utf-8", "-o",
+                io.getCanonicalPath(t), io.getCanonicalPath(f)};
+        com.yahoo.platform.yui.compressor.YUICompressor.main(args);
+        String r = new String(io.readFully(t));
+        if (!t.delete()) {
+            error("failed to delete file " + t);
+        }
+        return r;
     }
 
     private static String stripComments(File f, String s) throws IOException {
@@ -166,7 +188,7 @@ public class Embed {
             File f = locateFile(href);
             if (f.isFile()) {
                 sb.append(s.substring(i, m.start()));
-                String c = stripComments(f, new String(io.readFully(f)));
+                String c = compress(f);
                 // data uri can have "//" thus strip comment before not after
                 c = encodeDataUris(f, c);
                 sb.append("\n<style type=\"text/css\">\n").append(c).append("\n</style>\n");
