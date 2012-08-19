@@ -291,6 +291,7 @@ public class Embed {
         if (r == null) {
             File f = io.getCanonicalFile(path);
             byte[] bytes = io.readFully(f);
+            System.err.println("embedded " + path + " size " + formatSize(f.length()));
             String mime = io.getMimeTypeFromFilename(f.getName());
             r = "data:" + mime + ";base64," + Base64.encode(bytes);
             cache.put(path, r);
@@ -305,6 +306,14 @@ public class Embed {
             }
         }
         return r;
+    }
+
+    private static String formatSize(long length) {
+        if (length < 1024) {
+            return length + " bytes";
+        } else {
+            return (int)((length / 1024.) * 10) / 10. + " KB";
+        }
     }
 
 }
