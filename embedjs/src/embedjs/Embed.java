@@ -7,8 +7,7 @@ import java.util.*;
 import java.util.regex.*;
 
 /**
- This is oversimplified regex based embedding of javascript,
- css and data uri.
+ This is very simple regex based embedding of javascript, css and data uris.
  It may produce crippled results unless used with caution.
  However more complex solutions are short of writing
  complete javascript and css parser.
@@ -29,17 +28,41 @@ public class Embed {
 
     private static File src_dir;
     private static File src_file;
+    private static File all_js;
+    private static File all_css;
+    private static OutputStream out_js;
+    private static OutputStream out_css;
+    private static String name_all_js;
+    private static String name_all_css;
+    private static boolean all;
+    private static boolean dyn;
+
 
     public static void main(String[] a) {
-        if (a.length < 2) {
-            System.err.println("usage: jar -jar embedjs.jar <src_dir> <dest_dir>\n" +
+        ArrayList<String> args = new ArrayList<String>(Arrays.asList(a));
+        int i = 0;
+        while (i < args.size()) {
+            if ("-a".equals(args.get(i))) {
+                all = true;
+                args.remove(i);
+            } else if ("-d".equals(args.get(i))) {
+                dyn = true;
+                args.remove(i);
+            } else {
+                i++;
+            }
+        }
+        if (args.size() < 2) {
+            System.err.println("usage: jar -jar embedjs.jar [-a][-d] <src_dir> <dest_dir>\n" +
                     "or\n" +
                     "jar2bin embedjs.jar\n" +
-                    "embedjs <scr> <dest>\n");
+                    "embedjs <scr> <dest>\n" +
+                    "-a creates <name>-all.css and <name>-all.js and embeds references to those files;\n" +
+                    "-d do not include links to -all.css and -all.js into html files.");
             System.exit(1);
         }
-        src_dir = io.getCanonicalFile(a[0]);
-        File dst_dir = io.getCanonicalFile(a[1]);
+        src_dir = io.getCanonicalFile(args.get(0));
+        File dst_dir = io.getCanonicalFile(args.get(1));
         if (!src_dir.isDirectory()) {
             error(src_dir + " does not exist or is not a directory");
         }
@@ -54,14 +77,37 @@ public class Embed {
             error("Nothing to do. No *.html resources found at: " + src_dir);
             return;
         }
-
         for (File f : files) {
             String name = f.getName().toLowerCase();
             if (name.endsWith(".html") || name.endsWith(".jsp")) {
+                String prefix = name.substring(0, name.lastIndexOf('.'));
+                name_all_js = prefix + "-all.js";
+                name_all_css = prefix + "-all.css";
                 try {
+                    if (all &&
+                        (new File(src_dir, name_all_js).exists() || new File(src_dir, name_all_css).exists())) {
+                        System.err.println("Error: usage -a option prohibits files: " +
+                                name_all_js + " and " + name_all_css +
+                                " in the source directory");
+                        System.exit(1);
+                    }
+                    if (all) {
+                        all_js = new File(dst_dir, name_all_js);
+                        all_css = new File(dst_dir, name_all_css);
+                    }
                     src_file = new File(dst_dir, f.getName());
                     page.clear();
-                    embed(src_file, new String(io.readFully(f)));
+                    embed(src_file, compress(f), all);
+                    if (all) {
+                        if (out_js != null) {
+                            out_js.close();
+                            out_js = null;
+                        }
+                        if (out_css != null) {
+                            out_css.close();
+                            out_css = null;
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                     error(e.getMessage());
@@ -70,14 +116,14 @@ public class Embed {
         }
     }
 
-    private static void embed(File out, String s) throws IOException {
+    private static void embed(File out, String s, boolean all) throws IOException {
         s = stripComments(out, s); // IMPORTANT: strip comments before embedding
-        s = embedStyles(s);
-        s = embedScripts(s);
+        s = embedStyles(s, all);
+        s = embedScripts(s, all);
         s = embedImages(s);
         OutputStream os = new FileOutputStream(out);
         try {
-            os.write(s.getBytes());
+            os.write(s.getBytes("UTF8"));
         } finally {
             os.close();
         }
@@ -94,7 +140,7 @@ public class Embed {
         System.exit(1);
     }
 
-    private static String embedScripts(String s) throws IOException {
+    private static String embedScripts(String s, boolean all) throws IOException {
         StringBuilder sb = new StringBuilder(BUFFER_SIZE);
         Matcher m1 = Pattern.compile("<script([^<]*)/>").matcher(s);
         Matcher m2 = Pattern.compile("<script([^<]*)</script>").matcher(s);
@@ -112,7 +158,17 @@ public class Embed {
             if (io.isFile(f)) {
                 sb.append(s.substring(i, m.start()));
                 String c = compress(f);
-                sb.append("\n<script type=\"text/javascript\" >\n").append(c).append("\n</script>\n");
+                if (all) {
+                    if (out_js == null) {
+                        out_js = new FileOutputStream(all_js);
+                        if (!dyn) {
+                            sb.append("\n<script type=\"text/javascript\" src=\"").append(name_all_js).append("\"></script>\n");
+                        }
+                    }
+                    out_js.write(embedImages(c).getBytes("UTF8"));
+                } else {
+                    sb.append("\n<script type=\"text/javascript\" >\n").append(c).append("\n</script>\n");
+                }
             } else {
                 warnCannotEmbed(f);
                 sb.append(s.substring(i, m.end()));
@@ -149,8 +205,8 @@ public class Embed {
             return s; // do not cripple already minified javascript
         }
         // see: http://ostermiller.org/findcomment.html
-        return s.replaceAll("(<!--(?:.|[\\n\\r])*?-->)|" +
-                            "(/\\*(?:.|[\\n\\r])*?\\*/)", "");
+        return s.replaceAll("(<!--(?:.|[\\n\\r]|[\\n])*?-->)|" +
+                            "(/\\*(?:.|[\\n\\r]|[\\n])*?\\*/)", "");
         // there is actually no safe way to strip "//" comment considering something like:
         // return "//foo"; // bar "
         // or even more complicated situations
@@ -176,7 +232,7 @@ public class Embed {
         return i == 0 ? s : sb.append(s.substring(i, s.length())).toString();
     }
 
-    private static String embedStyles(String s) throws IOException {
+    private static String embedStyles(String s, boolean all) throws IOException {
         StringBuilder sb = new StringBuilder(BUFFER_SIZE);
         Matcher m = Pattern.compile("<link([^<]*)/>").matcher(s);
         int i = 0;
@@ -191,7 +247,17 @@ public class Embed {
                 String c = compress(f);
                 // data uri can have "//" thus strip comment before not after
                 c = encodeDataUris(f, c);
-                sb.append("\n<style type=\"text/css\">\n").append(c).append("\n</style>\n");
+                if (all) {
+                    if (out_css == null) {
+                        out_css = new FileOutputStream(all_css);
+                        if (!dyn) {
+                            sb.append("\n<link rel=\"stylesheet\" href=\"").append(name_all_css).append("\" />\n");
+                        }
+                    }
+                    out_css.write(c.getBytes("UTF8"));
+                } else {
+                    sb.append("\n<style type=\"text/css\">\n").append(c).append("\n</style>\n");
+                }
             } else {
                 warnCannotEmbed(f);
                 sb.append(s.substring(i, m.end()));
